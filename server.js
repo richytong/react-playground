@@ -10,22 +10,18 @@ import { serve } from 'https://deno.land/std@0.51.0/http/server.ts'
 import { readFileStr } from 'https://deno.land/std@0.51.0/fs/mod.ts'
 import { join as joinPath } from 'https://deno.land/std@0.51.0/path/mod.ts'
 
-const { env, cwd, bundle } = Deno
-
-const DENO_DIR = env.get('DENO_DIR')
-
-const getGeneratedFilePath = x => joinPath(DENO_DIR, 'gen/file', cwd(), `${x}.js`)
+const { bundle } = Deno
 
 const join = delim => x => x.join(delim)
 
-const addServerTime = req => {
-  req.serverTime = (new Date()).toJSON()
+const putEntryTime = req => {
+  req.entry_time = (new Date()).toJSON()
   return req
 }
 
 const traceRequest = pipe([
   fork([
-    pipe([get('serverTime'), x => '[' + x + ']']),
+    pipe([get('entry_time'), x => '[' + x + ']']),
     get('method'),
     get('url'),
   ]),
@@ -53,6 +49,7 @@ const sendBundle = path => async req => {
     body: emit,
     headers: req.headers,
   })
+  return req
 }
 
 const sendNotFound = req => {
@@ -61,16 +58,15 @@ const sendNotFound = req => {
 
 const route = switchCase([
   eq('/main.js', get('url')), sendBundle('./main.js'),
-  eq('/lib.jsx', get('url')), sendBundle('./lib.jsx'),
   sendNotFound,
 ])
 
-const onRequest = pipe([
-  addServerTime,
-  tap(traceRequest),
+const onRequest = tryCatch(pipe([
+  putEntryTime,
   appendHeaders,
   route,
-])
+  tap(traceRequest),
+]), console.error)
 
 const s = serve({ port: 8001 })
 console.log('http://localhost:8001/')
