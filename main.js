@@ -3,9 +3,14 @@
 import React from 'https://dev.jspm.io/react'
 import ReactDOM from 'https://dev.jspm.io/react-dom'
 
-import {
-  Hey,
-} from './lib.jsx'
+// SCOPE: external libraries are expected not to change
+
+const Hey = x => (
+  <div>
+    <h1>HeyHeyHey</h1>
+    {...x.chlidren}
+  </div>
+)
 
 const Root = Hey
 
