@@ -29,31 +29,26 @@ const traceRequest = pipe([
   console.log,
 ])
 
-const appendHeaders = req => {
-  req.headers.append('Access-Control-Allow-Origin', '*')
-  req.headers.append('Content-Type', 'text/javascript')
-  return req
-}
-
-const sendFile = path => async req => {
-  req.respond({
-    body: await readFileStr(path),
-    headers: req.headers,
-  })
-  return req
-}
-
-const sendBundle = path => async req => {
-  const [, emit] = await bundle(path)
-  req.respond({
-    body: emit,
-    headers: req.headers,
-  })
-  return req
-}
+const sendBundle = path => pipe([
+  req => {
+    req.headers.append('Access-Control-Allow-Origin', '*')
+    req.headers.append('Content-Type', 'text/javascript')
+    return req
+  },
+  fork({
+    req: x => x,
+    body: pipe([() => bundle(path), get(1)]),
+    headers: get('headers'),
+  }),
+  ({ req, ...response }) => {
+    req.respond(response)
+    return req
+  },
+])
 
 const sendNotFound = req => {
   req.respond({ status: 404, body: 'Not Found' })
+  return req
 }
 
 const route = switchCase([
@@ -63,10 +58,11 @@ const route = switchCase([
 
 const onRequest = tryCatch(pipe([
   putEntryTime,
-  appendHeaders,
   route,
   tap(traceRequest),
-]), console.error)
+]), (err, x) => {
+  console.error('caught', err, x)
+})
 
 const s = serve({ port: 8001 })
 console.log('http://localhost:8001/')
