@@ -5,7 +5,6 @@ import {
   eq, gt, lt, gte, lte,
   get, pick, omit,
 } from 'https://deno.land/x/rubico/rubico.js'
-
 import { serve } from 'https://deno.land/std@0.51.0/http/server.ts'
 import { readFileStr } from 'https://deno.land/std@0.51.0/fs/mod.ts'
 import { join as joinPath } from 'https://deno.land/std@0.51.0/path/mod.ts'
@@ -29,6 +28,17 @@ const traceRequest = pipe([
   console.log,
 ])
 
+const createSimpleBundle = async path => {
+  console.log('starting simple bundle for', path)
+  const now = Date.now()
+  const [, bundled] = await bundle('/entry.js', {
+    '/entry.js': await readFileStr(path),
+  })
+  console.log(bundled)
+  console.log(`finished bundle in ${Date.now() - now}ms`)
+  return bundled
+}
+
 const sendBundle = path => pipe([
   req => {
     req.headers.append('Access-Control-Allow-Origin', '*')
@@ -37,7 +47,7 @@ const sendBundle = path => pipe([
   },
   fork({
     req: x => x,
-    body: pipe([() => bundle(path), get(1)]),
+    body: () => createSimpleBundle(path),
     headers: get('headers'),
   }),
   ({ req, ...response }) => {
