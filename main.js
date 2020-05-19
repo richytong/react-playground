@@ -14,15 +14,13 @@ const Hey = x => (
   </div>
 )
 
-const Ho = () => <h1>Ho Child</h1>
+const Ho = () => <h1>Ho</h1>
 
 const Root = () => (
-  <div>
-    <Hey>
-      <h1>Yoo</h1>
-      <Ho />
-    </Hey>
-  </div>
+  <Hey>
+    <h1>Ayo</h1>
+    <Ho />
+  </Hey>
 )
 
 ReactDOM.render(<Root />, document.querySelector('#root'))

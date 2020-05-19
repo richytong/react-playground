@@ -7,9 +7,10 @@ import {
 } from 'https://deno.land/x/rubico/rubico.js'
 import { serve } from 'https://deno.land/std@0.51.0/http/server.ts'
 import { readFileStr } from 'https://deno.land/std@0.51.0/fs/mod.ts'
-import { join as joinPath } from 'https://deno.land/std@0.51.0/path/mod.ts'
 
-const { bundle } = Deno
+const {
+  bundle, // --unstable
+} = Deno
 
 const join = delim => x => x.join(delim)
 
@@ -34,6 +35,7 @@ const createSimpleBundle = async path => {
   const [, bundled] = await bundle('/entry.js', {
     '/entry.js': await readFileStr(path),
   })
+  // const [, bundled] = await bundle(path)
   console.log(bundled)
   console.log(`finished bundle in ${Date.now() - now}ms`)
   return bundled
@@ -71,7 +73,7 @@ const onRequest = tryCatch(pipe([
   route,
   tap(traceRequest),
 ]), (err, x) => {
-  console.error('caught', err, x)
+  console.error(x.entry_time, x.method, x.url, err)
 })
 
 const s = serve({ port: 8001 })
