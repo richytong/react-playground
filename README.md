@@ -14,3 +14,4 @@ server.js - serves main.js
 TODO
   * independent React.createElement for library
   * prod server
+  * caching
