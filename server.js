@@ -32,10 +32,12 @@ const traceRequest = pipe([
 const createSimpleBundle = async path => {
   console.log('starting simple bundle for', path)
   const now = Date.now()
+  /* hacky workaround - single file, no imports
   const [, bundled] = await bundle('/entry.js', {
     '/entry.js': await readFileStr(path),
   })
-  // const [, bundled] = await bundle(path)
+  */
+  const [, bundled] = await bundle(path)
   console.log(bundled)
   console.log(`finished bundle in ${Date.now() - now}ms`)
   return bundled
